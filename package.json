@@ -10,6 +10,10 @@
       "default": "./dist/vite.js"
     }
   },
+  "files": [
+    "dist",
+    "README.md"
+  ],
   "scripts": {
     "build": "node build.mjs",
     "dev": "node build.mjs --watch",
