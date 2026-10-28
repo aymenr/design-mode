@@ -19,7 +19,7 @@
     "dev": "node build.mjs --watch",
     "typecheck": "tsc --noEmit",
     "prepare": "node build.mjs",
-    "deploy:site": "npx wrangler@4 deploy"
+    "deploy:site": "node build.mjs && npx wrangler@4 deploy"
   },
   "dependencies": {
     "@babel/parser": "^7.29.11",

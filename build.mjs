@@ -8,6 +8,7 @@ import { mkdirSync, writeFileSync } from 'node:fs'
  *   Preact is bundled in, so the panel has its own UI library and never shares the
  *   host's React.
  * - `dist/vite.js` — the Vite plugin the host's `vite.config.ts` loads.
+ * - `site/design-mode.js` — the client again, minified, for the landing page.
  */
 const watch = process.argv.includes('--watch')
 
@@ -22,6 +23,19 @@ const builds = [
     jsx: 'automatic',
     jsxImportSource: 'preact',
     sourcemap: 'inline',
+    logLevel: 'info',
+  },
+  // The same client, minified, for the landing page to run on itself.
+  {
+    entryPoints: ['src/client/index.tsx'],
+    outfile: 'site/design-mode.js',
+    bundle: true,
+    format: 'esm',
+    platform: 'browser',
+    target: 'es2022',
+    jsx: 'automatic',
+    jsxImportSource: 'preact',
+    minify: true,
     logLevel: 'info',
   },
   {

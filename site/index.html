@@ -3,13 +3,73 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Design Mode — inspect and tweak your running app, then hand it to Claude</title>
-<meta name="description" content="A dev-only design inspector for React + Vite apps. Click anything, change its props, variants, styles and text live, and copy one prompt that tells Claude exactly which files and lines to change.">
-<meta property="og:title" content="Design Mode">
-<meta property="og:description" content="Click anything in your running app. Change it like you would in Figma. Copy one prompt for Claude.">
-<meta property="og:url" content="https://designmode.thelycheestudio.com">
+<title>Design Mode: visual editing for React apps, built for Claude</title>
+<meta name="description" content="A free dev-only design inspector for React + Vite. Click anything in your running app, edit props, variants, styles and text live, then copy one prompt for Claude.">
+<link rel="canonical" href="https://designmode.thelycheestudio.com/">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<meta name="author" content="Lychee Studio">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Design Mode by Lychee Studio">
+<meta property="og:title" content="Design Mode: tweak your running app like a Figma file">
+<meta property="og:description" content="Click anything in your running React app. Change it like you would in Figma. Copy one prompt that tells Claude which file and line to edit.">
+<meta property="og:url" content="https://designmode.thelycheestudio.com/">
+<meta property="og:image" content="https://designmode.thelycheestudio.com/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Design Mode: a panel editing a Button component's variant and styles">
+<meta property="og:locale" content="en_CA">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Design Mode: tweak your running app like a Figma file">
+<meta name="twitter:description" content="Click anything in your running React app, change it live, then copy one prompt for Claude.">
+<meta name="twitter:image" content="https://designmode.thelycheestudio.com/og.png">
 <meta name="theme-color" content="#111114">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='16' fill='%234c8dff'/%3E%3Cpath d='M11 9l12 4.5-5 1.8-1.8 5z' fill='white'/%3E%3C/svg%3E">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "SoftwareApplication",
+      "@id": "https://designmode.thelycheestudio.com/#app",
+      "name": "Design Mode",
+      "url": "https://designmode.thelycheestudio.com/",
+      "description": "A dev-only design inspector for React + Vite apps. Select any element, edit props, variants, styles and text live, and copy one prompt that tells Claude exactly which files and lines to change.",
+      "applicationCategory": "DeveloperApplication",
+      "applicationSubCategory": "Design tool",
+      "operatingSystem": "macOS, Windows, Linux (any browser running a Vite dev server)",
+      "softwareRequirements": "React, Vite 5 or later",
+      "image": "https://designmode.thelycheestudio.com/og.png",
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+      "featureList": [
+        "Select any component or HTML element in a running app",
+        "Edit component props and variants read from TypeScript types",
+        "Labels every style value as a design token, a scale step or a raw value",
+        "Apply a change to one instance, one line of code, or every instance",
+        "Layers tree of the page, like Figma",
+        "Force hover and pressed states",
+        "Copies one prompt for Claude with file, line, old and new values"
+      ],
+      "publisher": { "@id": "https://thelycheestudio.com/#org" }
+    },
+    {
+      "@type": "Organization",
+      "@id": "https://thelycheestudio.com/#org",
+      "name": "Lychee Studio",
+      "url": "https://thelycheestudio.com/"
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        { "@type": "Question", "name": "Does Design Mode ship to production?", "acceptedAnswer": { "@type": "Answer", "text": "No. It only exists while you run the Vite dev server on your machine. Builds are untouched." } },
+        { "@type": "Question", "name": "Which frameworks does Design Mode support?", "acceptedAnswer": { "@type": "Answer", "text": "React with Vite today. Plain HTML pages and Next.js are planned." } },
+        { "@type": "Question", "name": "Where do component variants come from?", "acceptedAnswer": { "@type": "Answer", "text": "From each component's TypeScript types. A prop typed as a union of strings becomes a picker; a plain string gets a text field." } },
+        { "@type": "Question", "name": "What happens to my tweaks when I reload?", "acceptedAnswer": { "@type": "Answer", "text": "They live only on the page, so a reload clears them. You are asked first if you haven't copied the prompt yet." } }
+      ]
+    }
+  ]
+}
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -66,6 +126,7 @@
   .ctas { display: flex; gap: 12px; flex-wrap: wrap; }
   .btn { display: inline-flex; align-items: center; gap: 8px; height: 44px; padding: 0 18px; border-radius: 10px; font-weight: 500; font-size: 15px; }
   .btn:hover { text-decoration: none; }
+  button.btn { border: 0; font-family: inherit; cursor: pointer; }
   .btn.primary { background: var(--blue); color: #fff; }
   .btn.primary:hover { background: #3b7cf0; }
   .btn.ghost { border: 1px solid var(--line-strong); color: var(--text); }
@@ -176,6 +237,18 @@
     th, td { padding: 12px 8px; }
     td:first-child { white-space: normal; }
   }
+  /* The live tool on this page, and the callout pointing at its button */
+  .try-ring { position: fixed; z-index: 2147483646; pointer-events: none; border-radius: 999px; box-shadow: 0 0 0 0 rgba(76, 141, 255, 0.7); animation: try-pulse 1.8s ease-out infinite; }
+  @keyframes try-pulse { 0% { box-shadow: 0 0 0 0 rgba(76, 141, 255, 0.65); } 80%, 100% { box-shadow: 0 0 0 18px rgba(76, 141, 255, 0); } }
+  .try-tip { position: fixed; z-index: 2147483646; width: 270px; background: var(--blue); color: #fff; border-radius: 12px; padding: 14px 38px 14px 16px; font-size: 14px; line-height: 1.45; box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45); }
+  .try-tip b { display: block; font-size: 15px; margin-bottom: 3px; }
+  .try-tip::after { content: ''; position: absolute; right: 22px; bottom: -6px; width: 12px; height: 12px; background: var(--blue); transform: rotate(45deg); }
+  .try-tip button { position: absolute; top: 8px; right: 8px; width: 24px; height: 24px; border: 0; border-radius: 6px; background: transparent; color: #fff; font-size: 16px; line-height: 1; cursor: pointer; opacity: 0.8; }
+  .try-tip button:hover { opacity: 1; background: rgba(255, 255, 255, 0.15); }
+  .try-tip[hidden], .try-ring[hidden] { display: none; }
+  @media (prefers-reduced-motion: no-preference) { .try-tip:not([hidden]) { animation: try-in 0.5s 0.6s cubic-bezier(0.2, 0.7, 0.2, 1) both; } }
+  @keyframes try-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+  @media (prefers-reduced-motion: reduce) { .try-ring { animation: none; box-shadow: 0 0 0 3px rgba(76, 141, 255, 0.8); } }
 </style>
 </head>
 <body>
@@ -197,10 +270,10 @@
         <h1>Tweak your running app like it's a <em>Figma file</em>. Hand the changes to Claude.</h1>
         <p class="lede">Click anything on the page. Change its variant, its color, its spacing or its text and see it live. Then copy one prompt that tells Claude exactly which file and line to change.</p>
         <div class="ctas">
-          <a class="btn primary" href="#install">Install in two steps</a>
-          <a class="btn ghost" href="#how">See how it works</a>
+          <button class="btn primary" type="button" data-try>Try it on this page</button>
+          <a class="btn ghost" href="#install">Install in two steps</a>
         </div>
-        <p class="fine">Never ships to your users: it only exists while you run <code>vite</code> on your machine.</p>
+        <p class="fine">This page is running Design Mode right now: press the blue button bottom right and click anything. In your app it only exists while you run <code>vite</code>, never in a build.</p>
       </div>
 
       <div class="demo" role="img" aria-label="Design Mode open over an app: a button is selected and its variant changed, with the panel showing its properties and styles.">
@@ -349,9 +422,54 @@ export default defineConfig({
 
   <div class="wrap">
     <footer>
-      <span>Design Mode · made by <a href="https://thelycheestudio.com">The Lychee Studio</a></span>
+      <span>Design Mode · made by <a href="https://thelycheestudio.com/">Lychee Studio</a></span>
       <a href="https://github.com/aymenr/design-mode">github.com/aymenr/design-mode</a>
     </footer>
   </div>
+  <div class="try-ring" hidden aria-hidden="true"></div>
+  <div class="try-tip" role="note" hidden>
+    <b>Try it right here</b>
+    This page is running Design Mode. Press the button, then click any heading, button or card and change it.
+    <button type="button" aria-label="Dismiss">✕</button>
+  </div>
+  <script type="module">
+    // The real tool, built from this repo, running on its own landing page.
+    await import('/design-mode.js')
+    const ctl = window.__designMode
+    const ring = document.querySelector('.try-ring')
+    const tip = document.querySelector('.try-tip')
+    const KEY = 'design-mode-site:tip-dismissed'
+    let dismissed = false
+    try { dismissed = localStorage.getItem(KEY) === '1' } catch {}
+
+    const fab = () => document.querySelector('design-mode')?.shadowRoot?.querySelector('.fab')
+    const place = () => {
+      const s = ctl?.state
+      const el = fab()
+      const busy = !s || !s.enabled || s.selecting || s.panelOpen || s.changes.length > 0
+      ring.hidden = !el || busy
+      tip.hidden = !el || busy || dismissed
+      if (!el) return
+      const r = el.getBoundingClientRect()
+      Object.assign(ring.style, { left: r.left + 'px', top: r.top + 'px', width: r.width + 'px', height: r.height + 'px' })
+      const width = Math.min(270, innerWidth - 32)
+      tip.style.width = width + 'px'
+      tip.style.left = Math.max(16, Math.min(r.right - width, innerWidth - width - 16)) + 'px'
+      tip.style.top = r.top - tip.offsetHeight - 14 + 'px'
+    }
+    const dismiss = () => {
+      dismissed = true
+      try { localStorage.setItem(KEY, '1') } catch {}
+      place()
+    }
+    tip.querySelector('button').addEventListener('click', dismiss)
+    for (const b of document.querySelectorAll('[data-try]')) {
+      b.addEventListener('click', () => { if (!ctl.state.enabled) ctl.toggleEnabled(); ctl.startSelecting(); dismiss() })
+    }
+    ctl?.subscribe(() => requestAnimationFrame(place))
+    addEventListener('resize', place)
+    // The button is drawn a frame after the tool mounts.
+    requestAnimationFrame(() => requestAnimationFrame(place))
+  </script>
 </body>
 </html>

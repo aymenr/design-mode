@@ -275,8 +275,12 @@ const SPACING_STEPS = [0, 0.5, 1, 1.5, 2, 2.5, 3, 4, 5, 6, 8, 10, 12, 16, 20, 24
 /** What the picker offers for a property: the app's tokens first, then the scale. */
 export function optionsFor(def: PropDef, tokens: Tokens): Option[] {
   const options: Option[] = []
-  const matches = (name: string) =>
+  const named = (name: string) =>
     !!def.prefixes?.some((p) => name.startsWith(p)) && !(def.exclude && def.exclude.test(name))
+  // An app without Tailwind's `--color-*` names (`--blue`, `--text`): any variable that
+  // holds a color counts as a color token.
+  const byValue = def.kind === 'color' && ![...tokens.app.map((t) => t.name), ...tokens.scaleNames].some(named)
+  const matches = (name: string) => named(name) || (byValue && isColorValue(resolveVar(name)))
   const make = (name: string, level: 'token' | 'scale', group: string, themeValue?: string): Option => {
     const resolved = resolveVar(name)
     // Tailwind only puts a token on the page once something uses it. For an unused
@@ -308,6 +312,10 @@ export function optionsFor(def: PropDef, tokens: Tokens): Option[] {
     options.push({ label: keyword, css: keyword, preview: '', level: 'none', group: 'Options', swatch: null })
   }
   return options
+}
+
+function isColorValue(value: string): boolean {
+  return !!value && !/^(inherit|initial|unset|currentcolor|transparent)$/i.test(value) && CSS.supports('color', value)
 }
 
 /** Turns typed input into CSS: bare numbers become px for lengths, and a number for blur becomes `blur(…px)`. */

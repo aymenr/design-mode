@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://designmode.thelycheestudio.com/sitemap.xml
