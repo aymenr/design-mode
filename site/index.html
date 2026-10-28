@@ -3,15 +3,15 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Design Mode: visual editing for React apps, built for Claude</title>
-<meta name="description" content="A free dev-only design inspector for React + Vite. Click anything in your running app, edit props, variants, styles and text live, then copy one prompt for Claude.">
+<title>Design Mode: visual editing for React apps and AI coding agents</title>
+<meta name="description" content="A free dev-only design inspector for React + Vite. Click anything in your running app, edit props, variants, styles and text live, then copy one prompt for any AI coding agent: Claude Code, Cursor, Codex or Copilot.">
 <link rel="canonical" href="https://designmode.thelycheestudio.com/">
 <meta name="robots" content="index, follow, max-image-preview:large">
 <meta name="author" content="Lychee Studio">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Design Mode by Lychee Studio">
 <meta property="og:title" content="Design Mode: tweak your running app like a Figma file">
-<meta property="og:description" content="Click anything in your running React app. Change it like you would in Figma. Copy one prompt that tells Claude which file and line to edit.">
+<meta property="og:description" content="Click anything in your running React app. Change it like you would in Figma. Copy one prompt that tells your AI coding agent which file and line to edit.">
 <meta property="og:url" content="https://designmode.thelycheestudio.com/">
 <meta property="og:image" content="https://designmode.thelycheestudio.com/og.png">
 <meta property="og:image:width" content="1200">
@@ -20,7 +20,7 @@
 <meta property="og:locale" content="en_CA">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Design Mode: tweak your running app like a Figma file">
-<meta name="twitter:description" content="Click anything in your running React app, change it live, then copy one prompt for Claude.">
+<meta name="twitter:description" content="Click anything in your running React app, change it live, then copy one prompt for any AI coding agent.">
 <meta name="twitter:image" content="https://designmode.thelycheestudio.com/og.png">
 <meta name="theme-color" content="#111114">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
@@ -34,7 +34,7 @@
       "@id": "https://designmode.thelycheestudio.com/#app",
       "name": "Design Mode",
       "url": "https://designmode.thelycheestudio.com/",
-      "description": "A dev-only design inspector for React + Vite apps. Select any element, edit props, variants, styles and text live, and copy one prompt that tells Claude exactly which files and lines to change.",
+      "description": "A dev-only design inspector for React + Vite apps. Select any element, edit props, variants, styles and text live, and copy one prompt that tells any AI coding agent (Claude Code, Cursor, Codex, GitHub Copilot) exactly which files and lines to change.",
       "applicationCategory": "DeveloperApplication",
       "applicationSubCategory": "Design tool",
       "operatingSystem": "macOS, Windows, Linux (any browser running a Vite dev server)",
@@ -48,7 +48,7 @@
         "Apply a change to one instance, one line of code, or every instance",
         "Layers tree of the page, like Figma",
         "Force hover and pressed states",
-        "Copies one prompt for Claude with file, line, old and new values"
+        "Copies one plain-text prompt for any AI coding agent, with file, line, old and new values"
       ],
       "publisher": { "@id": "https://thelycheestudio.com/#org" }
     },
@@ -62,6 +62,7 @@
       "@type": "FAQPage",
       "mainEntity": [
         { "@type": "Question", "name": "Does Design Mode ship to production?", "acceptedAnswer": { "@type": "Answer", "text": "No. It only exists while you run the Vite dev server on your machine. Builds are untouched." } },
+        { "@type": "Question", "name": "Which AI agents does Design Mode work with?", "acceptedAnswer": { "@type": "Answer", "text": "Any agent that can edit your code. The prompt is plain text with file paths, line numbers and before and after values, so it works with Claude Code, Cursor, OpenAI Codex, GitHub Copilot, Windsurf and others." } },
         { "@type": "Question", "name": "Which frameworks does Design Mode support?", "acceptedAnswer": { "@type": "Answer", "text": "React with Vite today. Plain HTML pages and Next.js are planned." } },
         { "@type": "Question", "name": "Where do component variants come from?", "acceptedAnswer": { "@type": "Answer", "text": "From each component's TypeScript types. A prop typed as a union of strings becomes a picker; a plain string gets a text field." } },
         { "@type": "Question", "name": "What happens to my tweaks when I reload?", "acceptedAnswer": { "@type": "Answer", "text": "They live only on the page, so a reload clears them. You are asked first if you haven't copied the prompt yet." } }
@@ -267,8 +268,8 @@
     <header class="hero">
       <div>
         <span class="eyebrow"><i></i>For React + Vite apps · runs in dev only</span>
-        <h1>Tweak your running app like it's a <em>Figma file</em>. Hand the changes to Claude.</h1>
-        <p class="lede">Click anything on the page. Change its variant, its color, its spacing or its text and see it live. Then copy one prompt that tells Claude exactly which file and line to change.</p>
+        <h1>Tweak your running app like it's a <em>Figma file</em>. Hand the changes to your AI agent.</h1>
+        <p class="lede">Click anything on the page. Change its variant, its color, its spacing or its text and see it live. Then copy one prompt that tells your coding agent exactly which file and line to change.</p>
         <div class="ctas">
           <button class="btn primary" type="button" data-try>Try it on this page</button>
           <a class="btn ghost" href="#install">Install in two steps</a>
@@ -316,7 +317,7 @@
       <div class="steps">
         <div class="step"><h3>Select</h3><p>Press the round button and click anything. Design Mode tells you if it's a component or a plain HTML tag, and the exact file and line it was written on.</p></div>
         <div class="step"><h3>Tweak</h3><p>Switch a variant, toggle a prop, pick a color token, nudge the padding, rewrite a label. It changes on the page immediately, and stays changed as the app re-renders.</p></div>
-        <div class="step"><h3>Copy the prompt</h3><p>Every change goes into one prompt: where it is, what it was, what it should be, and how far it should reach. Paste it into Claude and it edits the code.</p></div>
+        <div class="step"><h3>Copy the prompt</h3><p>Every change goes into one prompt: where it is, what it was, what it should be, and how far it should reach. Paste it into Claude Code, Cursor, Codex or any agent that edits code, and it makes the change.</p></div>
       </div>
     </div>
   </section>
@@ -414,6 +415,7 @@ export default defineConfig({
           <tr><td>Your tweaks</td><td>Live only on the page. A reload clears them, and you're asked first if you haven't copied them.</td></tr>
           <tr><td>Variants</td><td>Read from TypeScript. A prop typed as plain <code>string</code> gets a text field instead of options.</td></tr>
           <tr><td>Canvas</td><td>Anything drawn on a <code>&lt;canvas&gt;</code> is one image, so it can be selected only as a whole.</td></tr>
+          <tr><td>AI agents</td><td>Any agent that edits code: Claude Code, Cursor, Codex, GitHub Copilot, Windsurf. The prompt is plain text, so nothing is tied to one tool.</td></tr>
           <tr><td>Frameworks</td><td>React + Vite today. Plain HTML pages and Next.js are planned.</td></tr>
         </table>
       </div>

@@ -177,7 +177,7 @@ export class Controller {
     })
 
     window.addEventListener('beforeunload', (event) => {
-      // Copied changes are safe: they're in the prompt. This matters because Claude
+      // Copied changes are safe: they're in the prompt. This matters because a coding agent
       // applying the prompt makes Vite reload the page, which shouldn't need confirming.
       if (!this.state.enabled || this.state.changes.length === 0 || this.signature() === this.copied) return
       event.preventDefault()
@@ -529,7 +529,7 @@ export class Controller {
     this.toastTimer = window.setTimeout(() => this.set({ toast: null }), 8000)
   }
 
-  /** The Claude prompt for the current changes. */
+  /** The prompt for the current changes, for whichever coding agent you use. */
   prompt(): string {
     return buildPrompt(this.state.changes, this.state.tree)
   }
@@ -545,7 +545,7 @@ export class Controller {
     this.set({ menuOpen: false })
     if (ok) {
       this.copied = this.signature()
-      this.showToast('Prompt copied. Paste it into Claude.')
+      this.showToast('Prompt copied. Paste it into your coding agent.')
     } else {
       this.showToast("Couldn't copy. Select the preview text and copy it instead.")
     }

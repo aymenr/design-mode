@@ -2,7 +2,8 @@
 
 A dev-only design inspector for React + Vite apps. Click anything in your running
 app, change its props, variants, styles and text live, then copy one prompt that
-tells Claude exactly which files and lines to change. It shows up only while the
+tells your AI coding agent (Claude Code, Cursor, Codex, Copilot…) exactly which files
+and lines to change. It shows up only while the
 app runs with `vite` dev, never in a build.
 
 Site and docs: https://designmode.thelycheestudio.com
@@ -49,7 +50,7 @@ The landing page is in `site/` and deploys to Cloudflare with `npm run deploy:si
 | ⌥⇧D | Turn Design Mode on or off |
 | Snowflake | Freeze: the app gets no input and its animations pause |
 | Show as: Hover / Pressed | Shows the selected element in that state, like DevTools' force state |
-| Copy prompt | In the Changes tab: copies every change for Claude, with file:line, old → new and scope |
+| Copy prompt | In the Changes tab: copies every change as one prompt for your coding agent, with file:line, old → new and scope |
 
 ## How file and line work
 

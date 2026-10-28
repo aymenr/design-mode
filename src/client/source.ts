@@ -20,7 +20,7 @@ export function shortSrc(src: string | null): string {
   return `${file.replace(/^src\//, '')}${line ? `:${line}` : ''}`
 }
 
-/** `src/ui/kit/Card.tsx:36:5` → `src/ui/kit/Card.tsx:36`: what the Claude prompt says. */
+/** `src/ui/kit/Card.tsx:36:5` → `src/ui/kit/Card.tsx:36`: what the prompt says. */
 export function fileLine(src: string | null): string {
   if (!src) return ''
   const [file, line] = src.split(':')

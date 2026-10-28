@@ -132,7 +132,7 @@ export interface Value {
   /** A color to show as a swatch, for color properties. */
   swatch: string | null
   inherited: boolean
-  /** The declaration it came from, kept for the Claude prompt (which class to swap). */
+  /** The declaration it came from, kept for the prompt (which class to swap). */
   source: Declaration | null
 }
 

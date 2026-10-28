@@ -126,7 +126,7 @@ function Launcher({ ctl, s }: { ctl: Controller; s: State }) {
           </button>
           {s.changes.length > 0 && (
             <button class="it" role="menuitem" onClick={() => void ctl.copyPrompt()}>
-              <Icon name="copy" /> Copy prompt for Claude
+              <Icon name="copy" /> Copy prompt
             </button>
           )}
           {s.changes.length > 0 && (

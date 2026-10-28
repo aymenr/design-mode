@@ -4,7 +4,7 @@ import { componentsNamed, fileLine, srcOf } from './source'
 import type { LayerTree } from './tree'
 
 /**
- * The prompt you paste into Claude: every change, with where it is in the code, what
+ * The prompt you paste into your coding agent: every change, with where it is in the code, what
  * it was and what it should become, and how far it should reach.
  *
  * Written for a reader who has the code but not the page: values are given the way
