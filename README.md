@@ -71,3 +71,7 @@ applies prop edits made in the panel. Builds are untouched.
 - `src/client/tree.ts`: the layers tree, built from React or from the DOM
 - `src/client/controller.ts`: state, input handling, keeping the tree fresh
 - `src/client/ui/`: the panel, built with Preact inside a shadow root
+
+## License
+
+MIT © Lychee Studio Inc. See [LICENSE](LICENSE).
