@@ -65,7 +65,8 @@
         { "@type": "Question", "name": "Which AI agents does Design Mode work with?", "acceptedAnswer": { "@type": "Answer", "text": "Any agent that can edit your code. The prompt is plain text with file paths, line numbers and before and after values, so it works with Claude Code, Cursor, OpenAI Codex, GitHub Copilot, Windsurf and others." } },
         { "@type": "Question", "name": "Which frameworks does Design Mode support?", "acceptedAnswer": { "@type": "Answer", "text": "React with Vite today. Plain HTML pages and Next.js are planned." } },
         { "@type": "Question", "name": "Where do component variants come from?", "acceptedAnswer": { "@type": "Answer", "text": "From each component's TypeScript types. A prop typed as a union of strings becomes a picker; a plain string gets a text field." } },
-        { "@type": "Question", "name": "What happens to my tweaks when I reload?", "acceptedAnswer": { "@type": "Answer", "text": "They live only on the page, so a reload clears them. You are asked first if you haven't copied the prompt yet." } }
+        { "@type": "Question", "name": "What happens to my tweaks when I reload?", "acceptedAnswer": { "@type": "Answer", "text": "They live only on the page, so a reload clears them. You are asked first if you haven't copied the prompt yet." } },
+        { "@type": "Question", "name": "Can I edit things drawn on a canvas?", "acceptedAnswer": { "@type": "Answer", "text": "Only as a whole. Anything drawn on a canvas element is one image to the browser, so it can be selected but not taken apart." } }
       ]
     }
   ]
@@ -84,8 +85,9 @@
     --line-strong: #3c3c46;
     --text: #ecebef;
     --muted: #a3a1ab;
-    --faint: #75737d;
+    --faint: #8e8c96;
     --blue: #4c8dff;
+    --blue-fill: #2b6be6;
     --blue-soft: rgba(76, 141, 255, 0.14);
     --blue-text: #9cc0ff;
     --changed: #5fd08a;
@@ -105,6 +107,7 @@
   body { margin: 0; background: var(--page); color: var(--text); font: 16px/1.6 'DM Sans', system-ui, -apple-system, sans-serif; -webkit-font-smoothing: antialiased; }
   a { color: var(--blue-text); text-decoration: none; }
   a:hover { text-decoration: underline; }
+  a:focus-visible, button:focus-visible { outline: 2px solid var(--blue); outline-offset: 3px; border-radius: 6px; }
   code { font: 0.86em var(--mono); background: var(--surface-2); border-radius: 5px; padding: 0.1em 0.4em; }
   .wrap { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
 
@@ -116,6 +119,8 @@
   nav .links { margin-left: auto; display: flex; gap: 22px; font-size: 14px; }
   nav .links a { color: var(--muted); }
   nav .links a:hover { color: var(--text); text-decoration: none; }
+  nav .links a.nav-cta { color: #fff; background: var(--blue-fill); border-radius: 8px; padding: 4px 12px; margin: -4px 0; }
+  nav .links a.nav-cta:hover { background: #2259cc; }
 
   /* Hero */
   .hero { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); gap: 56px; align-items: center; padding: 64px 0 88px; }
@@ -128,8 +133,8 @@
   .btn { display: inline-flex; align-items: center; gap: 8px; height: 44px; padding: 0 18px; border-radius: 10px; font-weight: 500; font-size: 15px; }
   .btn:hover { text-decoration: none; }
   button.btn { border: 0; font-family: inherit; cursor: pointer; }
-  .btn.primary { background: var(--blue); color: #fff; }
-  .btn.primary:hover { background: #3b7cf0; }
+  .btn.primary { background: var(--blue-fill); color: #fff; }
+  .btn.primary:hover { background: #2259cc; }
   .btn.ghost { border: 1px solid var(--line-strong); color: var(--text); }
   .btn.ghost:hover { background: var(--surface); }
   .fine { font-size: 13px; color: var(--faint); margin-top: 14px; }
@@ -219,7 +224,15 @@
   td:first-child { color: var(--text); }
   kbd { font: 12px var(--mono); border: 1px solid var(--line-strong); border-bottom-width: 2px; border-radius: 5px; padding: 1px 6px; color: var(--text); }
   .two { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 48px; }
-  .two h3 { font-size: 18px; margin: 0 0 12px; }
+  .two h2 { font-size: 22px; margin: 0 0 16px; }
+
+  .faq { margin: 0; }
+  .faq dt { font-weight: 500; margin: 0 0 4px; }
+  .faq dd { margin: 0 0 20px; color: var(--muted); font-size: 15px; }
+  .faq dd:last-child { margin-bottom: 0; }
+  .closing { text-align: center; }
+  .closing .sub { margin: 0 auto 28px; }
+  .closing .ctas { justify-content: center; }
 
   footer { border-top: 1px solid var(--line); padding: 36px 0 56px; color: var(--faint); font-size: 14px; display: flex; gap: 16px; justify-content: space-between; flex-wrap: wrap; }
 
@@ -227,10 +240,12 @@
     .hero, .split, .two, .install { grid-template-columns: minmax(0, 1fr); }
     .hero { padding-top: 32px; gap: 40px; }
     .steps, .grid { grid-template-columns: minmax(0, 1fr); }
-    nav .links a:not(.gh) { display: none; }
+    nav .links a:not(.nav-cta) { display: none; }
   }
   @media (max-width: 560px) {
     .wrap { padding: 0 16px; }
+    .ctas .btn { width: 100%; justify-content: center; }
+    pre { font-size: 12px; padding: 18px; }
     .demo { height: 520px; }
     .demo .app-body { width: 100%; }
     .panel { top: auto; bottom: 12px; left: 12px; right: 12px; width: auto; }
@@ -241,40 +256,42 @@
   /* The live tool on this page, and the callout pointing at its button */
   .try-ring { position: fixed; z-index: 2147483646; pointer-events: none; border-radius: 999px; box-shadow: 0 0 0 0 rgba(76, 141, 255, 0.7); animation: try-pulse 1.8s ease-out infinite; }
   @keyframes try-pulse { 0% { box-shadow: 0 0 0 0 rgba(76, 141, 255, 0.65); } 80%, 100% { box-shadow: 0 0 0 18px rgba(76, 141, 255, 0); } }
-  .try-tip { position: fixed; z-index: 2147483646; width: 270px; background: var(--blue); color: #fff; border-radius: 12px; padding: 14px 38px 14px 16px; font-size: 14px; line-height: 1.45; box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45); }
-  .try-tip b { display: block; font-size: 15px; margin-bottom: 3px; }
-  .try-tip::after { content: ''; position: absolute; right: 22px; bottom: -6px; width: 12px; height: 12px; background: var(--blue); transform: rotate(45deg); }
-  .try-tip button { position: absolute; top: 8px; right: 8px; width: 24px; height: 24px; border: 0; border-radius: 6px; background: transparent; color: #fff; font-size: 16px; line-height: 1; cursor: pointer; opacity: 0.8; }
+  .try-tip { position: fixed; z-index: 2147483646; display: flex; align-items: center; gap: 4px; height: 40px; white-space: nowrap; background: var(--blue-fill); color: #fff; border-radius: 10px; padding: 0 6px 0 14px; font-size: 14px; font-weight: 500; box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45); }
+  .try-tip::after { content: ''; position: absolute; right: -5px; top: 14px; width: 12px; height: 12px; background: var(--blue-fill); transform: rotate(45deg); border-radius: 2px; }
+  .try-tip button { position: relative; z-index: 1; flex: none; width: 28px; height: 28px; border: 0; border-radius: 6px; background: transparent; color: #fff; font-size: 14px; line-height: 1; cursor: pointer; opacity: 0.8; }
   .try-tip button:hover { opacity: 1; background: rgba(255, 255, 255, 0.15); }
   .try-tip[hidden], .try-ring[hidden] { display: none; }
   @media (prefers-reduced-motion: no-preference) { .try-tip:not([hidden]) { animation: try-in 0.5s 0.6s cubic-bezier(0.2, 0.7, 0.2, 1) both; } }
-  @keyframes try-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+  @keyframes try-in { from { opacity: 0; transform: translateX(-8px); } to { opacity: 1; transform: none; } }
   @media (prefers-reduced-motion: reduce) { .try-ring { animation: none; box-shadow: 0 0 0 3px rgba(76, 141, 255, 0.8); } }
 </style>
 </head>
 <body>
   <div class="wrap">
-    <nav>
+    <nav aria-label="Main">
       <a class="brand" href="#"><span class="mark"><svg width="14" height="14" viewBox="0 0 24 24" fill="#fff" aria-hidden="true"><path d="M5 3l15 5.6-6.3 2.2L11.4 17z"/></svg></span>Design Mode</a>
       <div class="links">
         <a href="#how">How it works</a>
         <a href="#prompt">The prompt</a>
-        <a href="#install">Install</a>
         <a href="#controls">Controls</a>
-        <a class="gh" href="https://github.com/aymenr/design-mode">GitHub</a>
+        <a href="#faq">FAQ</a>
+        <a class="nav-cta" href="#install">Install</a>
       </div>
     </nav>
+  </div>
 
+  <main>
+  <div class="wrap">
     <header class="hero">
       <div>
-        <span class="eyebrow"><i></i>For React + Vite apps · runs in dev only</span>
-        <h1>Tweak your running app like it's a <em>Figma file</em>. Hand the changes to your AI agent.</h1>
-        <p class="lede">Click anything on the page. Change its variant, its color, its spacing or its text and see it live. Then copy one prompt that tells your coding agent exactly which file and line to change.</p>
+        <span class="eyebrow"><i></i>For designers and developers on React + Vite</span>
+        <h1>Tweak your running app like it's a <em>Figma file</em>.</h1>
+        <p class="lede">Then hand the changes to your AI coding agent. Click anything on the page, change its variant, color, spacing or text and see it live. Copy one prompt that tells your agent exactly which file and line to change.</p>
         <div class="ctas">
           <button class="btn primary" type="button" data-try>Try it on this page</button>
           <a class="btn ghost" href="#install">Install in two steps</a>
         </div>
-        <p class="fine">This page is running Design Mode right now: press the blue button bottom right and click anything. In your app it only exists while you run <code>vite</code>, never in a build.</p>
+        <p class="fine">Design Mode is running on this page right now. In your own app it only runs while the Vite dev server is running, and is never part of a production build.</p>
       </div>
 
       <div class="demo" role="img" aria-label="Design Mode open over an app: a button is selected and its variant changed, with the panel showing its properties and styles.">
@@ -315,24 +332,24 @@
       <h2>From "that looks off" to a precise change, without opening the code</h2>
       <p class="sub">Design reviews usually end in vague notes. Design Mode lets you make the change on the real app first, then turns it into instructions a coding agent can follow exactly.</p>
       <div class="steps">
-        <div class="step"><h3>Select</h3><p>Press the round button and click anything. Design Mode tells you if it's a component or a plain HTML tag, and the exact file and line it was written on.</p></div>
+        <div class="step"><h3>Select</h3><p>Press the cursor button, bottom right, and click anything. Design Mode tells you if it's a component or a plain HTML tag, and the exact file and line it was written on.</p></div>
         <div class="step"><h3>Tweak</h3><p>Switch a variant, toggle a prop, pick a color token, nudge the padding, rewrite a label. It changes on the page immediately, and stays changed as the app re-renders.</p></div>
         <div class="step"><h3>Copy the prompt</h3><p>Every change goes into one prompt: where it is, what it was, what it should be, and how far it should reach. Paste it into Claude Code, Cursor, Codex or any agent that edits code, and it makes the change.</p></div>
       </div>
     </div>
   </section>
 
-  <section>
+  <section id="features">
     <div class="wrap">
       <h2>Built for how design systems actually work</h2>
       <p class="sub">It reads your components and your theme, not just pixels, so changes land in the right place in the code.</p>
       <div class="grid">
-        <div class="feat"><div class="ico">◇</div><h3>Variants from your types</h3><p>Props and their options come straight from each component's TypeScript types: <code>variant: 'primary' | 'quiet'</code> becomes a picker, booleans become toggles.</p></div>
-        <div class="feat"><div class="ico">◈</div><h3>Tokens, scale, or raw</h3><p>Every value says what it is: one of your app's tokens, a step on Tailwind's scale, or a hard-coded one-off.</p><div class="levels"><span>◇ color-card</span><span>16</span><span class="r">50 raw</span></div></div>
-        <div class="feat"><div class="ico">⌖</div><h3>This one, or all of them</h3><p>Choose who a change applies to: just this one, everything one line of code draws, every Button with this variant, or the component's default. Hover a choice to see what it covers.</p></div>
-        <div class="feat"><div class="ico">☰</div><h3>Layers, like Figma</h3><p>The page as a tree of components. Plain HTML is hidden until you want it, and repeats fold into one row ("Card ×3").</p></div>
-        <div class="feat"><div class="ico">◐</div><h3>Hover and pressed states</h3><p>Show any element in its hover or pressed look without holding the mouse on it, and freeze open menus while you inspect them.</p></div>
-        <div class="feat"><div class="ico">◎</div><h3>Out of your app's way</h3><p>Lives in its own sealed-off layer, so it can't break your styles. While selecting, clicks and keys never reach your app. Nothing ships to production.</p></div>
+        <div class="feat"><div class="ico" aria-hidden="true">◇</div><h3>Variants from your types</h3><p>Props and their options come straight from each component's TypeScript types: <code>variant: 'primary' | 'quiet'</code> becomes a picker, booleans become toggles.</p></div>
+        <div class="feat"><div class="ico" aria-hidden="true">◈</div><h3>Tokens, scale, or raw</h3><p>Every value says what it is: one of your design tokens (the named colors and sizes your app defines, like <code>color-card</code>), a step on Tailwind's scale, or a hard-coded one-off, marked "raw".</p><div class="levels"><span>◇ color-card</span><span>16</span><span class="r">50 raw</span></div></div>
+        <div class="feat"><div class="ico" aria-hidden="true">⌖</div><h3>This one, or all of them</h3><p>Choose who a change applies to: just this one, everything one line of code draws, every Button with this variant, or the component's default. Hover a choice to see what it covers.</p></div>
+        <div class="feat"><div class="ico" aria-hidden="true">☰</div><h3>Layers, like Figma</h3><p>The page as a tree of components. Plain HTML is hidden until you want it, and repeats fold into one row ("Card ×3").</p></div>
+        <div class="feat"><div class="ico" aria-hidden="true">◐</div><h3>Hover and pressed states</h3><p>Show any element in its hover or pressed look without holding the mouse on it, and freeze open menus while you inspect them.</p></div>
+        <div class="feat"><div class="ico" aria-hidden="true">◎</div><h3>Out of your app's way</h3><p>Lives in its own sealed-off layer, so it can't break your styles. While selecting, clicks and keys never reach your app. Nothing ships to production.</p></div>
       </div>
     </div>
   </section>
@@ -372,7 +389,7 @@ Design Mode; they are not in the code yet.</span>
   <section id="install">
     <div class="wrap">
       <h2>Install in two steps</h2>
-      <p class="sub">Works with React apps built with Vite. Your app's code stays untouched; Design Mode only adds itself while <code>vite</code> is running.</p>
+      <p class="sub">Works with React apps built with Vite. Your app's code stays untouched; Design Mode only adds itself while the Vite dev server is running.</p>
       <div class="install">
         <div class="card">
           <h3><b>1</b>Add the package</h3>
@@ -387,7 +404,7 @@ import designMode from 'design-mode/vite'
 export default defineConfig({
   plugins: [designMode(), react()],
 })</pre>
-          <p>Put it before React's plugin. Run <code>vite</code> as usual; the button appears bottom right.</p>
+          <p>Put it before React's plugin. Start your dev server as usual; the cursor button appears bottom right.</p>
         </div>
       </div>
     </div>
@@ -396,10 +413,10 @@ export default defineConfig({
   <section id="controls">
     <div class="wrap two">
       <div>
-        <h3>Controls</h3>
+        <h2>Controls</h2>
         <table>
-          <tr><th>Do this</th><th>To</th></tr>
-          <tr><td>Round button</td><td>Start selecting. Drag it to move it; it remembers the spot.</td></tr>
+          <thead><tr><th scope="col">Do this</th><th scope="col">To</th></tr></thead>
+          <tr><td>Cursor button</td><td>Start selecting. Drag it to move it; it remembers the spot.</td></tr>
           <tr><td>Click</td><td>Select the nearest component.</td></tr>
           <tr><td><kbd>⌥</kbd> Click</td><td>Select the exact HTML tag instead.</td></tr>
           <tr><td><kbd>↑</kbd></td><td>Move to the parent while selecting.</td></tr>
@@ -408,30 +425,47 @@ export default defineConfig({
           <tr><td>Snowflake</td><td>Freeze the page so open menus stay open.</td></tr>
         </table>
       </div>
-      <div>
-        <h3>Good to know</h3>
-        <table>
-          <tr><th>Topic</th><th>Detail</th></tr>
-          <tr><td>Your tweaks</td><td>Live only on the page. A reload clears them, and you're asked first if you haven't copied them.</td></tr>
-          <tr><td>Variants</td><td>Read from TypeScript. A prop typed as plain <code>string</code> gets a text field instead of options.</td></tr>
-          <tr><td>Canvas</td><td>Anything drawn on a <code>&lt;canvas&gt;</code> is one image, so it can be selected only as a whole.</td></tr>
-          <tr><td>AI agents</td><td>Any agent that edits code: Claude Code, Cursor, Codex, GitHub Copilot, Windsurf. The prompt is plain text, so nothing is tied to one tool.</td></tr>
-          <tr><td>Frameworks</td><td>React + Vite today. Plain HTML pages and Next.js are planned.</td></tr>
-        </table>
+      <div id="faq">
+        <h2>Questions</h2>
+        <dl class="faq">
+          <dt>Does Design Mode ship to production?</dt>
+          <dd>No. It only exists while you run the Vite dev server on your machine. Builds are untouched.</dd>
+          <dt>Which AI agents does Design Mode work with?</dt>
+          <dd>Any agent that can edit your code. The prompt is plain text with file paths, line numbers and before and after values, so it works with Claude Code, Cursor, OpenAI Codex, GitHub Copilot, Windsurf and others.</dd>
+          <dt>Which frameworks does Design Mode support?</dt>
+          <dd>React with Vite today. Plain HTML pages and Next.js are planned.</dd>
+          <dt>Where do component variants come from?</dt>
+          <dd>From each component's TypeScript types. A prop typed as a union of strings becomes a picker; a plain string gets a text field.</dd>
+          <dt>What happens to my tweaks when I reload?</dt>
+          <dd>They live only on the page, so a reload clears them. You are asked first if you haven't copied the prompt yet.</dd>
+          <dt>Can I edit things drawn on a canvas?</dt>
+          <dd>Only as a whole. Anything drawn on a <code>&lt;canvas&gt;</code> element is one image to the browser, so it can be selected but not taken apart.</dd>
+        </dl>
       </div>
     </div>
   </section>
 
+  <section class="closing">
+    <div class="wrap">
+      <h2>See it on your own app</h2>
+      <p class="sub">Try it here first, then add it to your project in two steps.</p>
+      <div class="ctas">
+        <button class="btn primary" type="button" data-try>Try it on this page</button>
+        <a class="btn ghost" href="#install">Install</a>
+      </div>
+    </div>
+  </section>
+  </main>
+
   <div class="wrap">
     <footer>
       <span>Design Mode · made by <a href="https://thelycheestudio.com/">Lychee Studio</a></span>
-      <a href="https://github.com/aymenr/design-mode">github.com/aymenr/design-mode</a>
+      <span><a href="https://github.com/aymenr/design-mode">GitHub</a> (private for now)</span>
     </footer>
   </div>
   <div class="try-ring" hidden aria-hidden="true"></div>
   <div class="try-tip" role="note" hidden>
-    <b>Try it right here</b>
-    This page is running Design Mode. Press the button, then click any heading, button or card and change it.
+    Try it here: press this button
     <button type="button" aria-label="Dismiss">✕</button>
   </div>
   <script type="module">
@@ -450,15 +484,16 @@ export default defineConfig({
       const el = fab()
       const busy = !s || !s.enabled || s.selecting || s.panelOpen || s.changes.length > 0
       ring.hidden = !el || busy
-      tip.hidden = !el || busy || dismissed
+      // The tip is a first-screen nudge; past that, the ring alone keeps pointing at the button.
+      tip.hidden = !el || busy || dismissed || scrollY > innerHeight * 0.6
       if (!el) return
       const r = el.getBoundingClientRect()
       Object.assign(ring.style, { left: r.left + 'px', top: r.top + 'px', width: r.width + 'px', height: r.height + 'px' })
-      const width = Math.min(270, innerWidth - 32)
-      tip.style.width = width + 'px'
-      tip.style.left = Math.max(16, Math.min(r.right - width, innerWidth - width - 16)) + 'px'
-      tip.style.top = r.top - tip.offsetHeight - 14 + 'px'
+      // Sits to the left of the button, at its height, so it never covers the hero.
+      tip.style.left = Math.max(16, r.left - tip.offsetWidth - 12) + 'px'
+      tip.style.top = r.top + (r.height - tip.offsetHeight) / 2 + 'px'
     }
+    const later = () => requestAnimationFrame(place)
     const dismiss = () => {
       dismissed = true
       try { localStorage.setItem(KEY, '1') } catch {}
@@ -468,10 +503,15 @@ export default defineConfig({
     for (const b of document.querySelectorAll('[data-try]')) {
       b.addEventListener('click', () => { if (!ctl.state.enabled) ctl.toggleEnabled(); ctl.startSelecting(); dismiss() })
     }
-    ctl?.subscribe(() => requestAnimationFrame(place))
-    addEventListener('resize', place)
-    // The button is drawn a frame after the tool mounts.
-    requestAnimationFrame(() => requestAnimationFrame(place))
+    ctl?.subscribe(later)
+    // A frame later, so the tool has moved its button first.
+    addEventListener('resize', later)
+    addEventListener('scroll', later, { passive: true })
+    // The button is drawn, and the tool switched on, some frames after it mounts,
+    // without always telling subscribers. Keep checking until the ring shows (about 5s at most).
+    let tries = 0
+    const boot = () => { place(); if (ring.hidden && tries++ < 100) setTimeout(boot, 50) }
+    boot()
   </script>
 </body>
 </html>
