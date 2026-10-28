@@ -1,0 +1,40 @@
+{
+  "name": "design-mode",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Dev-only design inspector for React + Vite apps.",
+  "type": "module",
+  "exports": {
+    "./vite": {
+      "types": "./dist/vite.d.ts",
+      "default": "./dist/vite.js"
+    }
+  },
+  "scripts": {
+    "build": "node build.mjs",
+    "dev": "node build.mjs --watch",
+    "typecheck": "tsc --noEmit",
+    "prepare": "node build.mjs",
+    "deploy:site": "npx wrangler@4 deploy"
+  },
+  "dependencies": {
+    "@babel/parser": "^7.29.11",
+    "magic-string": "^0.30.21"
+  },
+  "devDependencies": {
+    "@babel/types": "^7.29.11",
+    "@types/node": "^22.20.5",
+    "esbuild": "^0.24.2",
+    "preact": "^10.29.8",
+    "typescript": "^5.9.3",
+    "vite": "^7.3.7"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/aymenr/design-mode.git"
+  },
+  "homepage": "https://designmode.thelycheestudio.com",
+  "peerDependencies": {
+    "vite": ">=5"
+  }
+}

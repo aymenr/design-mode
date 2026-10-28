@@ -1,0 +1,7 @@
+{
+  // The landing page at designmode.thelycheestudio.com: static files only.
+  "name": "design-mode-site",
+  "compatibility_date": "2026-10-19",
+  "assets": { "directory": "./site" },
+  "routes": [{ "pattern": "designmode.thelycheestudio.com", "custom_domain": true }]
+}

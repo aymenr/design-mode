@@ -1,0 +1,357 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Design Mode — inspect and tweak your running app, then hand it to Claude</title>
+<meta name="description" content="A dev-only design inspector for React + Vite apps. Click anything, change its props, variants, styles and text live, and copy one prompt that tells Claude exactly which files and lines to change.">
+<meta property="og:title" content="Design Mode">
+<meta property="og:description" content="Click anything in your running app. Change it like you would in Figma. Copy one prompt for Claude.">
+<meta property="og:url" content="https://designmode.thelycheestudio.com">
+<meta name="theme-color" content="#111114">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='16' fill='%234c8dff'/%3E%3Cpath d='M11 9l12 4.5-5 1.8-1.8 5z' fill='white'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --page: #111114;
+    --surface: #1c1c20;
+    --surface-2: #25252b;
+    --surface-3: #3a3a44;
+    --line: #2e2e36;
+    --line-strong: #3c3c46;
+    --text: #ecebef;
+    --muted: #a3a1ab;
+    --faint: #75737d;
+    --blue: #4c8dff;
+    --blue-soft: rgba(76, 141, 255, 0.14);
+    --blue-text: #9cc0ff;
+    --changed: #5fd08a;
+    --raw: #f2c072;
+    --raw-soft: rgba(240, 180, 80, 0.15);
+    --component: #b69cff;
+    --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+    --app-stage: #0a0a0f;
+    --app-card: #353332;
+    --app-drawer: #2e2b33;
+    --app-ctrl: #3c3842;
+    --app-primary: #f14e23;
+    --app-primary-edge: #8c2d14;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; background: var(--page); color: var(--text); font: 16px/1.6 'DM Sans', system-ui, -apple-system, sans-serif; -webkit-font-smoothing: antialiased; }
+  a { color: var(--blue-text); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code { font: 0.86em var(--mono); background: var(--surface-2); border-radius: 5px; padding: 0.1em 0.4em; }
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
+
+  /* Nav */
+  nav { display: flex; align-items: center; gap: 24px; height: 64px; }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; color: var(--text); }
+  .brand:hover { text-decoration: none; }
+  .mark { width: 26px; height: 26px; border-radius: 13px; background: var(--blue); display: grid; place-items: center; }
+  nav .links { margin-left: auto; display: flex; gap: 22px; font-size: 14px; }
+  nav .links a { color: var(--muted); }
+  nav .links a:hover { color: var(--text); text-decoration: none; }
+
+  /* Hero */
+  .hero { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); gap: 56px; align-items: center; padding: 64px 0 88px; }
+  .eyebrow { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); border: 1px solid var(--line-strong); border-radius: 999px; padding: 4px 12px; margin-bottom: 22px; }
+  .eyebrow i { width: 6px; height: 6px; border-radius: 3px; background: var(--changed); }
+  h1 { font-size: clamp(38px, 5.2vw, 60px); line-height: 1.05; letter-spacing: -0.02em; margin: 0 0 20px; font-weight: 700; }
+  h1 em { font-style: normal; color: var(--blue-text); }
+  .lede { font-size: 19px; color: var(--muted); margin: 0 0 32px; max-width: 520px; }
+  .ctas { display: flex; gap: 12px; flex-wrap: wrap; }
+  .btn { display: inline-flex; align-items: center; gap: 8px; height: 44px; padding: 0 18px; border-radius: 10px; font-weight: 500; font-size: 15px; }
+  .btn:hover { text-decoration: none; }
+  .btn.primary { background: var(--blue); color: #fff; }
+  .btn.primary:hover { background: #3b7cf0; }
+  .btn.ghost { border: 1px solid var(--line-strong); color: var(--text); }
+  .btn.ghost:hover { background: var(--surface); }
+  .fine { font-size: 13px; color: var(--faint); margin-top: 14px; }
+
+  /* Hero demo */
+  .demo { position: relative; background: var(--app-stage); border: 1px solid var(--line); border-radius: 16px; height: 460px; overflow: hidden; box-shadow: 0 40px 80px rgba(0, 0, 0, 0.45); }
+  .demo .app-head { height: 46px; background: #2a272e; display: flex; align-items: center; padding: 0 14px; gap: 8px; font-weight: 700; font-size: 14px; color: #eee; }
+  .demo .app-body { padding: 16px; width: 54%; }
+  .app-card { position: relative; background: var(--app-card); border-radius: 8px; border-bottom: 4px solid #0a0606; padding: 12px; margin-bottom: 12px; }
+  .app-card .t { font-weight: 500; font-size: 13px; }
+  .app-card .s { font-size: 12px; color: #a7a3a0; margin-bottom: 10px; }
+  .abtn { display: inline-flex; font: 700 12px 'DM Sans', sans-serif; color: #fff; padding: 6px 12px; border-radius: 4px; }
+  .abtn.primary { background: var(--app-primary); border-bottom: 3px solid var(--app-primary-edge); }
+  .abtn.control { background: var(--app-ctrl); border-bottom: 3px solid #0a0606; }
+  .abtn.quiet { box-shadow: inset 0 0 0 1px #5a5660; color: #ccc; }
+  .sel { position: relative; display: inline-block; }
+  .sel::after { content: ''; position: absolute; inset: -4px; border: 1.5px solid var(--blue); border-radius: 6px; }
+  .sel .tag { position: absolute; left: -4px; top: -26px; white-space: nowrap; background: var(--blue); color: #fff; font: 500 11px var(--mono); padding: 2px 6px; border-radius: 4px; z-index: 1; }
+  .also::after { content: ''; position: absolute; inset: -4px; border: 1.5px dashed rgba(76, 141, 255, 0.7); border-radius: 6px; }
+
+  .panel { position: absolute; top: 58px; right: 12px; width: 268px; background: var(--surface); border: 1px solid var(--line-strong); border-radius: 12px; font-size: 12px; box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5); }
+  .p-head { display: flex; align-items: center; gap: 4px; padding: 6px; border-bottom: 1px solid var(--line-strong); }
+  .tab { height: 26px; padding: 0 9px; display: inline-flex; align-items: center; gap: 6px; border-radius: 6px; color: var(--muted); font-weight: 500; }
+  .tab.on { background: var(--surface-2); color: var(--text); }
+  .ct { font-size: 10px; min-width: 16px; height: 16px; border-radius: 8px; background: var(--changed); color: #0b2a17; display: inline-grid; place-items: center; padding: 0 4px; font-weight: 700; }
+  .sec { padding: 8px 10px; border-bottom: 1px solid var(--line-strong); }
+  .sec:last-child { border-bottom: 0; }
+  .sec-h { color: var(--muted); font-size: 11px; margin-bottom: 4px; display: flex; justify-content: space-between; }
+  .sec-h .cnt { color: var(--changed); }
+  .name { font-size: 14px; font-weight: 500; display: flex; align-items: center; gap: 8px; }
+  .kind { font-size: 10px; padding: 1px 6px; border-radius: 4px; background: rgba(182, 156, 255, 0.16); color: #cdb9ff; font-weight: 400; }
+  .src { font: 10.5px var(--mono); color: var(--muted); margin-top: 2px; }
+  .row { display: grid; grid-template-columns: 70px 1fr; align-items: center; gap: 8px; min-height: 26px; }
+  .row .l { color: var(--muted); }
+  .row .l.ov { color: var(--text); font-weight: 700; }
+  .row .l.ov::before { content: ''; display: inline-block; width: 6px; height: 6px; border-radius: 3px; background: var(--changed); margin-right: 5px; vertical-align: 1px; }
+  .field { height: 24px; display: flex; align-items: center; gap: 6px; padding: 0 7px; background: var(--surface-2); border-radius: 5px; font: 10.5px var(--mono); white-space: nowrap; overflow: hidden; }
+  .field.focus { box-shadow: inset 0 0 0 1px var(--blue); }
+  .sw { width: 11px; height: 11px; border-radius: 3px; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18); flex: none; }
+  .tok::before { content: ''; display: inline-block; width: 6px; height: 6px; border: 1.5px solid currentColor; margin-right: 6px; transform: rotate(45deg); vertical-align: 1px; }
+  .rawflag { margin-left: auto; font: 10px 'DM Sans'; padding: 0 5px; border-radius: 3px; background: var(--raw-soft); color: var(--raw); }
+  .chip { display: inline-flex; margin: 2px 0 4px 78px; height: 20px; align-items: center; padding: 0 8px; border-radius: 10px; border: 1px solid rgba(76, 141, 255, 0.5); background: var(--surface-2); font-size: 10.5px; }
+  .copy { display: flex; justify-content: flex-end; padding: 8px 10px; }
+  .copy span { background: var(--blue); color: #fff; border-radius: 6px; padding: 5px 10px; font-weight: 500; }
+
+  /* Sections */
+  section { padding: 88px 0; border-top: 1px solid var(--line); }
+  h2 { font-size: clamp(28px, 3.4vw, 38px); line-height: 1.15; letter-spacing: -0.015em; margin: 0 0 14px; font-weight: 700; }
+  .sub { color: var(--muted); font-size: 17px; max-width: 640px; margin: 0 0 44px; }
+  .steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; counter-reset: step; }
+  .step { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 24px; }
+  .step::before { counter-increment: step; content: counter(step); display: grid; place-items: center; width: 28px; height: 28px; border-radius: 14px; background: var(--blue-soft); color: var(--blue-text); font-weight: 700; font-size: 14px; margin-bottom: 16px; }
+  .step h3, .feat h3 { margin: 0 0 6px; font-size: 18px; font-weight: 700; }
+  .step p, .feat p { margin: 0; color: var(--muted); font-size: 15px; }
+  .grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
+  .feat { background: var(--page); padding: 26px; }
+  .feat .ico { width: 34px; height: 34px; border-radius: 9px; background: var(--surface-2); display: grid; place-items: center; margin-bottom: 14px; color: var(--blue-text); }
+  .levels { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; font: 12px var(--mono); }
+  .levels span { background: var(--surface-2); border-radius: 5px; padding: 2px 8px; }
+  .levels .r { background: var(--raw-soft); color: var(--raw); }
+
+  /* Prompt */
+  .split { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); gap: 48px; align-items: start; }
+  .split .sub { margin-bottom: 20px; }
+  ul.ticks { list-style: none; padding: 0; margin: 0; color: var(--muted); }
+  ul.ticks li { padding-left: 26px; position: relative; margin-bottom: 10px; }
+  ul.ticks li::before { content: ''; position: absolute; left: 4px; top: 9px; width: 9px; height: 5px; border-left: 2px solid var(--changed); border-bottom: 2px solid var(--changed); transform: rotate(-45deg); }
+  pre { margin: 0; background: #0b0b0e; border: 1px solid var(--line); border-radius: 14px; padding: 22px 24px; font: 13px/1.7 var(--mono); color: #cfcdd6; white-space: pre-wrap; overflow-x: auto; }
+  pre .c { color: var(--faint); }
+  pre .k { color: var(--blue-text); }
+  pre .g { color: var(--changed); }
+
+  /* Install */
+  .install { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; }
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 24px; }
+  .card h3 { margin: 0 0 12px; font-size: 16px; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+  .card h3 b { display: grid; place-items: center; width: 24px; height: 24px; border-radius: 12px; background: var(--blue-soft); color: var(--blue-text); font-size: 13px; }
+  .card pre { background: #0b0b0e; border-radius: 10px; padding: 14px 16px; font-size: 12.5px; }
+  .card p { color: var(--muted); font-size: 14px; margin: 12px 0 0; }
+
+  /* Tables */
+  table { width: 100%; border-collapse: collapse; font-size: 15px; }
+  th, td { text-align: left; padding: 14px 16px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { color: var(--muted); font-weight: 500; font-size: 13px; }
+  td:first-child { white-space: nowrap; font-weight: 500; }
+  td { color: var(--muted); }
+  td:first-child { color: var(--text); }
+  kbd { font: 12px var(--mono); border: 1px solid var(--line-strong); border-bottom-width: 2px; border-radius: 5px; padding: 1px 6px; color: var(--text); }
+  .two { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 48px; }
+  .two h3 { font-size: 18px; margin: 0 0 12px; }
+
+  footer { border-top: 1px solid var(--line); padding: 36px 0 56px; color: var(--faint); font-size: 14px; display: flex; gap: 16px; justify-content: space-between; flex-wrap: wrap; }
+
+  @media (max-width: 900px) {
+    .hero, .split, .two, .install { grid-template-columns: minmax(0, 1fr); }
+    .hero { padding-top: 32px; gap: 40px; }
+    .steps, .grid { grid-template-columns: minmax(0, 1fr); }
+    nav .links a:not(.gh) { display: none; }
+  }
+  @media (max-width: 560px) {
+    .wrap { padding: 0 16px; }
+    .demo { height: 520px; }
+    .demo .app-body { width: 100%; }
+    .panel { top: auto; bottom: 12px; left: 12px; right: 12px; width: auto; }
+    table { font-size: 14px; }
+    th, td { padding: 12px 8px; }
+    td:first-child { white-space: normal; }
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <nav>
+      <a class="brand" href="#"><span class="mark"><svg width="14" height="14" viewBox="0 0 24 24" fill="#fff" aria-hidden="true"><path d="M5 3l15 5.6-6.3 2.2L11.4 17z"/></svg></span>Design Mode</a>
+      <div class="links">
+        <a href="#how">How it works</a>
+        <a href="#prompt">The prompt</a>
+        <a href="#install">Install</a>
+        <a href="#controls">Controls</a>
+        <a class="gh" href="https://github.com/aymenr/design-mode">GitHub</a>
+      </div>
+    </nav>
+
+    <header class="hero">
+      <div>
+        <span class="eyebrow"><i></i>For React + Vite apps · runs in dev only</span>
+        <h1>Tweak your running app like it's a <em>Figma file</em>. Hand the changes to Claude.</h1>
+        <p class="lede">Click anything on the page. Change its variant, its color, its spacing or its text and see it live. Then copy one prompt that tells Claude exactly which file and line to change.</p>
+        <div class="ctas">
+          <a class="btn primary" href="#install">Install in two steps</a>
+          <a class="btn ghost" href="#how">See how it works</a>
+        </div>
+        <p class="fine">Never ships to your users: it only exists while you run <code>vite</code> on your machine.</p>
+      </div>
+
+      <div class="demo" role="img" aria-label="Design Mode open over an app: a button is selected and its variant changed, with the panel showing its properties and styles.">
+        <div class="app-head">♪ Library</div>
+        <div class="app-body">
+          <div class="app-card"><div class="t">Clair de lune</div><div class="s">Debussy · 5:12</div>
+            <span class="sel"><span class="tag">Button · 78×30</span><span class="abtn control">Practice</span></span> <span class="abtn quiet">Edit</span></div>
+          <div class="app-card"><div class="t">Gymnopédie no. 1</div><div class="s">Satie · 3:30</div><span class="also sel" style="display:inline-block"><span class="abtn control">Practice</span></span> <span class="abtn quiet">Edit</span></div>
+          <div class="app-card"><div class="t">River flows in you</div><div class="s">Yiruma · 3:10</div><span class="also sel" style="display:inline-block"><span class="abtn control">Practice</span></span> <span class="abtn quiet">Edit</span></div>
+        </div>
+        <div class="panel">
+          <div class="p-head"><span class="tab on">Inspect</span><span class="tab">Changes <span class="ct">2</span></span></div>
+          <div class="sec">
+            <div class="name">Button <span class="kind">Component</span></div>
+            <div class="src">Used at library/SongCard.tsx:84</div>
+            <div class="src">Defined in kit/Button.tsx:54</div>
+          </div>
+          <div class="sec">
+            <div class="sec-h"><span>Properties</span><span class="cnt">1 changed</span></div>
+            <div class="row"><span class="l ov">variant</span><div class="field focus">control</div></div>
+            <span class="chip">All 3 from this line</span>
+            <div class="row"><span class="l">size</span><div class="field">md</div></div>
+          </div>
+          <div class="sec">
+            <div class="sec-h"><span>Styles</span></div>
+            <div class="row"><span class="l">Fill</span><div class="field"><span class="sw" style="background:var(--app-ctrl)"></span><span class="tok">color-ctrl</span></div></div>
+            <div class="row"><span class="l">Height</span><div class="field" style="color:var(--raw)">50 <span class="rawflag">raw</span></div></div>
+            <div class="row"><span class="l">Radius</span><div class="field"><span class="tok">radius-ctrl</span></div></div>
+          </div>
+          <div class="copy"><span>Copy prompt</span></div>
+        </div>
+      </div>
+    </header>
+  </div>
+
+  <section id="how">
+    <div class="wrap">
+      <h2>From "that looks off" to a precise change, without opening the code</h2>
+      <p class="sub">Design reviews usually end in vague notes. Design Mode lets you make the change on the real app first, then turns it into instructions a coding agent can follow exactly.</p>
+      <div class="steps">
+        <div class="step"><h3>Select</h3><p>Press the round button and click anything. Design Mode tells you if it's a component or a plain HTML tag, and the exact file and line it was written on.</p></div>
+        <div class="step"><h3>Tweak</h3><p>Switch a variant, toggle a prop, pick a color token, nudge the padding, rewrite a label. It changes on the page immediately, and stays changed as the app re-renders.</p></div>
+        <div class="step"><h3>Copy the prompt</h3><p>Every change goes into one prompt: where it is, what it was, what it should be, and how far it should reach. Paste it into Claude and it edits the code.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <h2>Built for how design systems actually work</h2>
+      <p class="sub">It reads your components and your theme, not just pixels, so changes land in the right place in the code.</p>
+      <div class="grid">
+        <div class="feat"><div class="ico">◇</div><h3>Variants from your types</h3><p>Props and their options come straight from each component's TypeScript types: <code>variant: 'primary' | 'quiet'</code> becomes a picker, booleans become toggles.</p></div>
+        <div class="feat"><div class="ico">◈</div><h3>Tokens, scale, or raw</h3><p>Every value says what it is: one of your app's tokens, a step on Tailwind's scale, or a hard-coded one-off.</p><div class="levels"><span>◇ color-card</span><span>16</span><span class="r">50 raw</span></div></div>
+        <div class="feat"><div class="ico">⌖</div><h3>This one, or all of them</h3><p>Choose who a change applies to: just this one, everything one line of code draws, every Button with this variant, or the component's default. Hover a choice to see what it covers.</p></div>
+        <div class="feat"><div class="ico">☰</div><h3>Layers, like Figma</h3><p>The page as a tree of components. Plain HTML is hidden until you want it, and repeats fold into one row ("Card ×3").</p></div>
+        <div class="feat"><div class="ico">◐</div><h3>Hover and pressed states</h3><p>Show any element in its hover or pressed look without holding the mouse on it, and freeze open menus while you inspect them.</p></div>
+        <div class="feat"><div class="ico">◎</div><h3>Out of your app's way</h3><p>Lives in its own sealed-off layer, so it can't break your styles. While selecting, clicks and keys never reach your app. Nothing ships to production.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="prompt">
+    <div class="wrap split">
+      <div>
+        <h2>One prompt, nothing to explain</h2>
+        <p class="sub">The prompt is written for a reader who has your code but not your screen.</p>
+        <ul class="ticks">
+          <li>Exact file and line for every change</li>
+          <li>Old value → new value, as token names where you used tokens</li>
+          <li>The Tailwind class to swap, when it can tell</li>
+          <li>How far each change should reach, spelled out</li>
+          <li>Changes you switched off are left out</li>
+        </ul>
+      </div>
+<pre><span class="c">Apply these design changes. I made them live in
+Design Mode; they are not in the code yet.</span>
+
+<span class="k">1. src/ui/HeaderBtn.tsx:51 — &lt;Button&gt;</span>
+   - variant: "control" → "primary",
+     for all of them (all 8 from this line)
+
+<span class="k">2. src/ui/kit/Button.tsx:103 — every &lt;Button&gt;</span>
+   - Radius (border-radius):
+     --radius-ctrl → --radius-card
+     <span class="g">(class rounded-ctrl → rounded-card)</span>
+
+<span class="k">3. src/ui/library/LibraryScreen.tsx:1146 — &lt;span&gt; "Upload song"</span>
+   - Text: "Upload song" → "Add a song"
+   - Size (font-size): 16px (hard-coded) → text-2xl
+     <span class="g">(class text-[16px] → text-2xl)</span>, for this one only.</pre>
+    </div>
+  </section>
+
+  <section id="install">
+    <div class="wrap">
+      <h2>Install in two steps</h2>
+      <p class="sub">Works with React apps built with Vite. Your app's code stays untouched; Design Mode only adds itself while <code>vite</code> is running.</p>
+      <div class="install">
+        <div class="card">
+          <h3><b>1</b>Add the package</h3>
+<pre>npm install -D github:aymenr/design-mode</pre>
+          <p>Installs from GitHub and builds itself. The repository is private for now, so your GitHub account needs access.</p>
+        </div>
+        <div class="card">
+          <h3><b>2</b>Add the plugin</h3>
+<pre><span class="c">// vite.config.ts</span>
+import designMode from 'design-mode/vite'
+
+export default defineConfig({
+  plugins: [designMode(), react()],
+})</pre>
+          <p>Put it before React's plugin. Run <code>vite</code> as usual; the button appears bottom right.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="controls">
+    <div class="wrap two">
+      <div>
+        <h3>Controls</h3>
+        <table>
+          <tr><th>Do this</th><th>To</th></tr>
+          <tr><td>Round button</td><td>Start selecting. Drag it to move it; it remembers the spot.</td></tr>
+          <tr><td>Click</td><td>Select the nearest component.</td></tr>
+          <tr><td><kbd>⌥</kbd> Click</td><td>Select the exact HTML tag instead.</td></tr>
+          <tr><td><kbd>↑</kbd></td><td>Move to the parent while selecting.</td></tr>
+          <tr><td><kbd>Esc</kbd></td><td>Close the innermost thing: picker, select mode, selection, panel.</td></tr>
+          <tr><td><kbd>⌥</kbd> <kbd>⇧</kbd> <kbd>D</kbd></td><td>Turn Design Mode on or off.</td></tr>
+          <tr><td>Snowflake</td><td>Freeze the page so open menus stay open.</td></tr>
+        </table>
+      </div>
+      <div>
+        <h3>Good to know</h3>
+        <table>
+          <tr><th>Topic</th><th>Detail</th></tr>
+          <tr><td>Your tweaks</td><td>Live only on the page. A reload clears them, and you're asked first if you haven't copied them.</td></tr>
+          <tr><td>Variants</td><td>Read from TypeScript. A prop typed as plain <code>string</code> gets a text field instead of options.</td></tr>
+          <tr><td>Canvas</td><td>Anything drawn on a <code>&lt;canvas&gt;</code> is one image, so it can be selected only as a whole.</td></tr>
+          <tr><td>Frameworks</td><td>React + Vite today. Plain HTML pages and Next.js are planned.</td></tr>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <div class="wrap">
+    <footer>
+      <span>Design Mode · made by <a href="https://thelycheestudio.com">The Lychee Studio</a></span>
+      <a href="https://github.com/aymenr/design-mode">github.com/aymenr/design-mode</a>
+    </footer>
+  </div>
+</body>
+</html>
