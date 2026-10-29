@@ -6,7 +6,7 @@ tells your AI coding agent (Claude Code, Cursor, Codex, Copilot…) exactly whic
 and lines to change. It shows up only while the
 app runs with `vite` dev, never in a build.
 
-Site and docs: https://designmode.thelycheestudio.com
+Site and docs: https://designmode.thelycheestudio.com · Decisions: [docs/decisions.md](docs/decisions.md)
 
 ## Install
 
